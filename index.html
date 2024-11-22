@@ -16,27 +16,37 @@
         // LSTMネットワークを作成
         const net = new brain.recurrent.LSTM();
 
-        // JSONファイルからトレーニングデータをロード
-        fetch('train-data.json')
-            .then(response => response.json())
-            .then(data => {
-                // データを学習
-                net.train(data);
+        // トレーニングデータを非同期で読み込む
+        async function loadTrainingData() {
+            try {
+                const response = await fetch('train-data.json');
+                const data = await response.json();
+                console.log("トレーニングデータ読み込み完了:", data);
 
-                // ボタンイベントの登録
-                document.getElementById('sendButton').addEventListener('click', () => {
-                    const userInput = document.getElementById('userInput').value;
-                    const reply = net.run(userInput) || "すみません、よくわかりません。";
+                // 非同期で学習を行う
+                setTimeout(() => {
+                    net.train(data);
+                    console.log("学習完了");
+                }, 0);
 
-                    const chatOutput = document.getElementById('chatOutput');
-                    chatOutput.innerHTML += `<p><strong>あなた:</strong> ${userInput}</p>`;
-                    chatOutput.innerHTML += `<p><strong>ボット:</strong> ${reply}</p>`;
-                    document.getElementById('userInput').value = '';
-                });
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error("トレーニングデータの読み込みエラー:", error);
-            });
+            }
+        }
+
+        // ページ読み込み時にトレーニングデータをロード
+        loadTrainingData();
+
+        // ユーザーの入力に応じた応答を返す
+        document.getElementById('sendButton').addEventListener('click', () => {
+            const userInput = document.getElementById('userInput').value;
+            const reply = net.run(userInput) || "すみません、よくわかりません。";
+
+            const chatOutput = document.getElementById('chatOutput');
+            chatOutput.innerHTML += `<p><strong>あなた:</strong> ${userInput}</p>`;
+            chatOutput.innerHTML += `<p><strong>ボット:</strong> ${reply}</p>`;
+            document.getElementById('userInput').value = '';
+        });
     </script>
 </body>
 </html>
