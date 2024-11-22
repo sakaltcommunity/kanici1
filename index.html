@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain.js チャットボット</title>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
+</head>
+<body>
+    <h1>チャットボット</h1>
+    <input id="userInput" type="text" placeholder="話しかけてください">
+    <button id="sendButton">送信</button>
+    <div id="chatOutput"></div>
+
+    <script>
+        // LSTMネットワークを作成
+        const net = new brain.recurrent.LSTM();
+
+        // JSONファイルからトレーニングデータをロード
+        fetch('train-data.json')
+            .then(response => response.json())
+            .then(data => {
+                // データを学習
+                net.train(data);
+
+                // ボタンイベントの登録
+                document.getElementById('sendButton').addEventListener('click', () => {
+                    const userInput = document.getElementById('userInput').value;
+                    const reply = net.run(userInput) || "すみません、よくわかりません。";
+
+                    const chatOutput = document.getElementById('chatOutput');
+                    chatOutput.innerHTML += `<p><strong>あなた:</strong> ${userInput}</p>`;
+                    chatOutput.innerHTML += `<p><strong>ボット:</strong> ${reply}</p>`;
+                    document.getElementById('userInput').value = '';
+                });
+            })
+            .catch(error => {
+                console.error("トレーニングデータの読み込みエラー:", error);
+            });
+    </script>
+</body>
+</html>
