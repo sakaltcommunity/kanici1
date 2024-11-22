@@ -4,48 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brain.js チャットボット</title>
-    <!-- 最新のBrain.jsバージョンをCDNから読み込む -->
+    <!-- 最新のBrain.jsライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.1/dist/brain-browser.min.js"></script>
 </head>
 <body>
     <h1>チャットボット</h1>
-    <input id="userInput" type="text" placeholder="話しかけてください">
-    <button id="sendButton">送信</button>
+    <div>
+        <input id="userInput" type="text" placeholder="話しかけてください">
+        <button id="sendButton">送信</button>
+    </div>
     <div id="chatOutput"></div>
 
     <script>
-        // LSTMネットワークを作成
         const net = new brain.recurrent.LSTM();
+        const chatOutput = document.getElementById('chatOutput');
 
-        // トレーニングデータを非同期で読み込む
+        // トレーニングデータをJSONファイルから読み込む
         async function loadTrainingData() {
             try {
                 const response = await fetch('train-data.json');
-                const data = await response.json();
-                console.log("トレーニングデータ読み込み完了:", data);
+                const trainingData = await response.json();
+                console.log("トレーニングデータ読み込み完了:", trainingData);
 
-                // 非同期で学習を行う
-                setTimeout(() => {
-                    net.train(data);
-                    console.log("学習完了");
-                }, 0);
-
+                // トレーニング実行
+                net.train(trainingData);
+                console.log("トレーニング完了");
             } catch (error) {
                 console.error("トレーニングデータの読み込みエラー:", error);
+                chatOutput.innerHTML += `<p><strong>エラー:</strong> トレーニングデータが読み込めません。</p>`;
             }
         }
 
-        // ページ読み込み時にトレーニングデータをロード
+        // ページロード時にトレーニングデータを読み込む
         loadTrainingData();
 
-        // ユーザーの入力に応じた応答を返す
+        // 入力に応じて応答を生成
         document.getElementById('sendButton').addEventListener('click', () => {
-            const userInput = document.getElementById('userInput').value;
-            const reply = net.run(userInput) || "すみません、よくわかりません。";
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) {
+                chatOutput.innerHTML += `<p><strong>エラー:</strong> 入力が空です。</p>`;
+                return;
+            }
 
-            const chatOutput = document.getElementById('chatOutput');
+            const response = net.run(userInput) || "すみません、わかりません。";
             chatOutput.innerHTML += `<p><strong>あなた:</strong> ${userInput}</p>`;
-            chatOutput.innerHTML += `<p><strong>ボット:</strong> ${reply}</p>`;
+            chatOutput.innerHTML += `<p><strong>ボット:</strong> ${response}</p>`;
+
+            // 入力フィールドをリセット
             document.getElementById('userInput').value = '';
         });
     </script>
