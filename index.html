@@ -26,9 +26,11 @@
                 const trainingData = await response.json();
                 console.log("トレーニングデータ読み込み完了:", trainingData);
 
-                // トレーニング実行
-                net.train(trainingData);
-                console.log("トレーニング完了");
+                // トレーニング実行を非同期に行う
+                setTimeout(() => {
+                    net.train(trainingData);
+                    console.log("トレーニング完了");
+                }, 0);
             } catch (error) {
                 console.error("トレーニングデータの読み込みエラー:", error);
                 chatOutput.innerHTML += `<p><strong>エラー:</strong> トレーニングデータが読み込めません。</p>`;
